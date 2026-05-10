@@ -125,7 +125,7 @@
 
   <div id="form-view">
     <div class="header">
-      <span class="chess-symbol">♟</span>
+      <span class="chess-symbol" id="secret-btn" style="cursor:default;user-select:none;">♛</span>
       <h1>AUPP Chess Club</h1>
       <p class="sub">Officer Election Ballot · AY 2025–26</p>
     </div>
@@ -273,6 +273,19 @@
   }
 
   Object.keys(positions).forEach(renderOptions);
+
+  // Secret triple-click on chess piece → results page
+  let clickCount = 0, clickTimer = null;
+  document.getElementById('secret-btn').addEventListener('click', () => {
+    clickCount++;
+    if (clickTimer) clearTimeout(clickTimer);
+    clickTimer = setTimeout(() => { clickCount = 0; }, 600);
+    if (clickCount >= 3) {
+      clickCount = 0;
+      window.location.href = 'chess_club_results.html';
+    }
+  });
+
 </script>
 </body>
 </html>
