@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUPP Chess Club — Election Ballot</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    padding: 2rem 1rem 5rem;
+    position: relative;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #1c1c1c;
+    background-image:
+      linear-gradient(45deg, #242424 25%, transparent 25%),
+      linear-gradient(-45deg, #242424 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #242424 75%),
+      linear-gradient(-45deg, transparent 75%, #242424 75%);
+    background-size: 48px 48px;
+    background-position: 0 0, 0 24px, 24px -24px, -24px 0px;
+    color: #e8e4de;
+  }
+
+  /* Vignette overlay so edges fade and form stays readable */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse 85% 75% at 50% 40%, rgba(20,20,20,0.55) 0%, rgba(10,10,10,0.88) 100%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .wrap { max-width: 560px; margin: 0 auto; position: relative; z-index: 1; }
+
+  /* Header */
+  .header { text-align: center; padding: 2.5rem 0 2rem; border-bottom: 0.5px solid rgba(255,255,255,0.1); margin-bottom: 2rem; }
+  .chess-symbol { font-size: 48px; display: block; margin-bottom: 12px; filter: drop-shadow(0 2px 12px rgba(0,0,0,0.9)); }
+  .header h1 { font-family: 'Georgia', serif; font-size: 23px; font-weight: normal; color: #f0ede8; letter-spacing: 0.05em; margin-bottom: 5px; }
+  .header .sub { font-size: 11px; color: #666; letter-spacing: 0.12em; text-transform: uppercase; }
+
+  /* Already voted banner */
+  .voted-banner {
+    display: none;
+    background: rgba(255,255,255,0.06);
+    border: 0.5px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  .voted-banner .icon { font-size: 32px; display: block; margin-bottom: 10px; }
+  .voted-banner h3 { font-family: Georgia, serif; font-size: 17px; font-weight: normal; color: #f0ede8; margin-bottom: 6px; }
+  .voted-banner p { font-size: 13px; color: #666; }
+
+  /* Fields */
+  .field { margin-bottom: 1rem; }
+  .field label { display: block; font-size: 11px; color: #666; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 7px; }
+  .field input {
+    width: 100%;
+    background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.12);
+    border-radius: 8px; padding: 11px 14px; font-size: 15px; color: #f0ede8;
+    font-family: 'Helvetica Neue', Arial, sans-serif; outline: none; transition: border-color 0.15s, background 0.15s;
+  }
+  .field input:focus { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.09); }
+  .field input::placeholder { color: #3a3a3a; }
+
+  .divider { border: none; border-top: 0.5px solid rgba(255,255,255,0.08); margin: 1.5rem 0; }
+
+  /* Sections */
+  .section { background: rgba(0,0,0,0.5); border: 0.5px solid rgba(255,255,255,0.09); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+  .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #ccc; margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
+  .section-label::before { content: ''; width: 3px; height: 3px; border-radius: 50%; background: #fff; flex-shrink: 0; }
+
+  /* Candidates */
+  .candidate { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.06); margin-bottom: 8px; cursor: pointer; background: rgba(255,255,255,0.02); transition: background 0.12s, border-color 0.12s; user-select: none; }
+  .candidate:last-child { margin-bottom: 0; }
+  .candidate:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.18); }
+  .candidate.selected { background: rgba(255,255,255,0.11); border-color: rgba(255,255,255,0.38); }
+  .radio { width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #3a3a3a; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: border-color 0.12s; }
+  .candidate.selected .radio { border-color: #fff; background: #fff; }
+  .radio::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #1c1c1c; display: none; }
+  .candidate.selected .radio::after { display: block; }
+  .cname { font-size: 14px; color: #999; }
+  .candidate.selected .cname { color: #f0ede8; }
+
+  /* Comments */
+  .comments { margin-bottom: 1.5rem; }
+  .comments label { display: block; font-size: 11px; color: #666; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 7px; }
+  .comments textarea { width: 100%; background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 11px 14px; font-size: 14px; color: #f0ede8; font-family: 'Helvetica Neue', Arial, sans-serif; outline: none; resize: vertical; min-height: 80px; transition: border-color 0.15s; }
+  .comments textarea:focus { border-color: rgba(255,255,255,0.3); }
+  .comments textarea::placeholder { color: #3a3a3a; }
+
+  /* Submit */
+  .submit-btn { width: 100%; padding: 13px; font-size: 15px; font-family: 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.04em; cursor: pointer; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); color: #f0ede8; transition: background 0.15s; }
+  .submit-btn:hover:not(:disabled) { background: rgba(255,255,255,0.14); }
+  .submit-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .err { font-size: 12px; color: #c07070; margin-top: 10px; text-align: center; display: none; }
+  .status-msg { font-size: 13px; color: #555; margin-top: 10px; text-align: center; min-height: 20px; }
+
+  /* Success */
+  .success { display: none; text-align: center; padding: 4rem 1rem; }
+  .success-icon { font-size: 52px; display: block; margin-bottom: 16px; filter: drop-shadow(0 2px 12px rgba(0,0,0,0.8)); }
+  .success h2 { font-family: 'Georgia', serif; font-size: 24px; font-weight: normal; color: #f0ede8; margin-bottom: 8px; }
+  .success p { font-size: 14px; color: #666; }
+  .vote-summary { margin-top: 1.5rem; background: rgba(0,0,0,0.45); border: 0.5px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 14px 18px; text-align: left; }
+  .vote-summary div { font-size: 13px; padding: 6px 0; border-bottom: 0.5px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; }
+  .vote-summary div:last-child { border: none; }
+  .vote-summary .pos { color: #555; }
+  .vote-summary .pick { color: #f0ede8; }
+
+  .footer { text-align: center; padding-top: 2.5rem; font-size: 10px; color: #2a2a2a; letter-spacing: 0.1em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Already voted state -->
+  <div class="voted-banner" id="voted-banner">
+    <span class="icon">♛</span>
+    <h3>You've already voted.</h3>
+    <p>Your ballot was previously submitted and recorded.</p>
+  </div>
+
+  <div id="form-view">
+    <div class="header">
+      <span class="chess-symbol">♟</span>
+      <h1>AUPP Chess Club</h1>
+      <p class="sub">Officer Election Ballot · AY 2025–26</p>
+    </div>
+
+    <div class="field">
+      <label for="vname">Full name</label>
+      <input type="text" id="vname" placeholder="e.g. Lishang Keav" autocomplete="name">
+    </div>
+    <div class="field">
+      <label for="vstid">Student ID</label>
+      <input type="text" id="vstid" placeholder="e.g. 2023134" inputmode="numeric">
+    </div>
+
+    <hr class="divider">
+
+    <div class="section">
+      <p class="section-label">President</p>
+      <div id="president-opts"></div>
+    </div>
+    <div class="section">
+      <p class="section-label">Vice President</p>
+      <div id="vp-opts"></div>
+    </div>
+    <div class="section">
+      <p class="section-label">Club Officer</p>
+      <div id="officer-opts"></div>
+    </div>
+
+    <div class="comments">
+      <label for="vcomment">Additional comments <span style="opacity:0.4">(optional)</span></label>
+      <textarea id="vcomment" placeholder="Any suggestions or notes for the club..."></textarea>
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitVote()">Submit Ballot →</button>
+    <p class="err" id="errmsg"></p>
+    <p class="status-msg" id="status-msg"></p>
+  </div>
+
+  <div class="success" id="success-view">
+    <span class="success-icon">♛</span>
+    <h2>Vote recorded.</h2>
+    <p>Thank you, <strong id="s-name" style="color:#f0ede8"></strong>. Your ballot has been saved.</p>
+    <div class="vote-summary" id="s-summary"></div>
+  </div>
+
+  <div class="footer">AUPP Chess Club &mdash; internal use only</div>
+</div>
+
+<script>
+  // ── PASTE YOUR APPS SCRIPT WEB APP URL HERE ──────────────────────────────
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxA1E-98pTFeSMa7Q2JBaptuKarVSC-jxWkiLT_Q9zBXSsUmYB7wP-oC4WlXhvnq2OX/exec";
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const LS_KEY = "aupp_chess_voted";
+
+  const positions = {
+    president: { el: 'president-opts', candidates: ['Mohasal Lykunthy','Ritheasak','Kimsang','Sokundara','Lim Sunhout'] },
+    vp:        { el: 'vp-opts',        candidates: ['Pha Lina','Sokundara','Venghong','Ritheasak','Koun Chealinritheasak'] },
+    officer:   { el: 'officer-opts',   candidates: ['Lim Sunhout','Kimsang','Lo Sovannara'] }
+  };
+  const votes = { president: null, vp: null, officer: null };
+
+  // Check localStorage on load
+  if (localStorage.getItem(LS_KEY)) {
+    document.getElementById('voted-banner').style.display = 'block';
+    document.getElementById('form-view').style.display = 'none';
+  }
+
+  function renderOptions(posKey) {
+    const { el, candidates } = positions[posKey];
+    const container = document.getElementById(el);
+    candidates.forEach(name => {
+      const div = document.createElement('div');
+      div.className = 'candidate';
+      div.innerHTML = `<div class="radio"></div><span class="cname">${name}</span>`;
+      div.onclick = () => {
+        votes[posKey] = name;
+        container.querySelectorAll('.candidate').forEach(c =>
+          c.classList.toggle('selected', c.querySelector('.cname').textContent === name)
+        );
+      };
+      container.appendChild(div);
+    });
+  }
+
+  async function submitVote() {
+    const name    = document.getElementById('vname').value.trim();
+    const stid    = document.getElementById('vstid').value.trim();
+    const comment = document.getElementById('vcomment').value.trim();
+    const err     = document.getElementById('errmsg');
+    const btn     = document.getElementById('submit-btn');
+    const status  = document.getElementById('status-msg');
+
+    if (!name || !stid || !votes.president || !votes.vp || !votes.officer) {
+      err.textContent = 'Please complete your name, student ID, and all three votes.';
+      err.style.display = 'block'; return;
+    }
+    err.style.display = 'none';
+
+    // Device-level check
+    if (localStorage.getItem(LS_KEY)) {
+      document.getElementById('form-view').style.display = 'none';
+      document.getElementById('voted-banner').style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    status.textContent = 'Checking…';
+
+    try {
+      // Server-side duplicate check
+      const checkRes = await fetch(`${SCRIPT_URL}?check=${encodeURIComponent(stid)}`);
+      const checkData = await checkRes.json();
+
+      if (checkData.voted) {
+        err.textContent = 'This student ID has already submitted a ballot.';
+        err.style.display = 'block';
+        btn.disabled = false;
+        status.textContent = '';
+        return;
+      }
+
+      status.textContent = 'Submitting…';
+
+      await fetch(SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        body: JSON.stringify({ name, studentId: stid, president: votes.president, vp: votes.vp, officer: votes.officer, comments: comment })
+      });
+
+      // Mark as voted on this device
+      localStorage.setItem(LS_KEY, stid);
+
+      document.getElementById('s-name').textContent = name;
+      document.getElementById('s-summary').innerHTML = `
+        <div><span class="pos">President</span><span class="pick">${votes.president}</span></div>
+        <div><span class="pos">Vice President</span><span class="pick">${votes.vp}</span></div>
+        <div><span class="pos">Club Officer</span><span class="pick">${votes.officer}</span></div>`;
+      document.getElementById('form-view').style.display = 'none';
+      document.getElementById('success-view').style.display = 'block';
+
+    } catch {
+      status.textContent = 'Something went wrong — please try again.';
+      btn.disabled = false;
+    }
+  }
+
+  Object.keys(positions).forEach(renderOptions);
+</script>
+</body>
+</html>
