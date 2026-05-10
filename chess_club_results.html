@@ -8,110 +8,223 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: #0a0a0b;
-    color: #c8c0b0;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
     min-height: 100vh;
     padding: 2rem 1rem 5rem;
     position: relative;
-    overflow-x: hidden;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #1c1c1c;
+    background-image:
+      linear-gradient(45deg, #242424 25%, transparent 25%),
+      linear-gradient(-45deg, #242424 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #242424 75%),
+      linear-gradient(-45deg, transparent 75%, #242424 75%);
+    background-size: 48px 48px;
+    background-position: 0 0, 0 24px, 24px -24px, -24px 0px;
+    color: #e8e4de;
   }
 
   body::before {
     content: '';
-    position: fixed;
-    top: -200px; left: 50%;
-    transform: translateX(-50%);
-    width: 900px; height: 700px;
-    background: radial-gradient(ellipse at center top, rgba(201,168,76,0.12) 0%, transparent 65%);
-    pointer-events: none; z-index: 0;
-  }
-  body::after {
-    content: '';
-    position: fixed;
-    bottom: -200px; left: 50%;
-    transform: translateX(-50%);
-    width: 700px; height: 500px;
-    background: radial-gradient(ellipse at center bottom, rgba(201,168,76,0.06) 0%, transparent 65%);
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse 85% 75% at 50% 40%, rgba(20,20,20,0.55) 0%, rgba(10,10,10,0.88) 100%);
     pointer-events: none; z-index: 0;
   }
 
   .wrap { max-width: 620px; margin: 0 auto; position: relative; z-index: 1; }
 
-  .header { text-align: center; padding: 3rem 0 2rem; border-bottom: 0.5px solid rgba(201,168,76,0.15); margin-bottom: 2rem; }
-  .chess-symbol { font-size: 48px; display: block; margin-bottom: 14px; filter: drop-shadow(0 0 18px rgba(201,168,76,0.6)) drop-shadow(0 0 40px rgba(201,168,76,0.25)); }
-  .header h1 { font-family: 'Georgia', serif; font-size: 24px; font-weight: normal; color: #f5e6bb; letter-spacing: 0.06em; margin-bottom: 6px; }
-  .header .sub { font-size: 11px; color: #5a5144; letter-spacing: 0.14em; text-transform: uppercase; }
+  /* ── Auth screen ─────────────────────────────────────────────────────────── */
+  #auth-screen {
+    display: none;
+    position: fixed; inset: 0; z-index: 100;
+    align-items: center; justify-content: center;
+    background-color: #1c1c1c;
+    background-image:
+      linear-gradient(45deg, #242424 25%, transparent 25%),
+      linear-gradient(-45deg, #242424 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #242424 75%),
+      linear-gradient(-45deg, transparent 75%, #242424 75%);
+    background-size: 48px 48px;
+    background-position: 0 0, 0 24px, 24px -24px, -24px 0px;
+  }
+  #auth-screen::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 85% 75% at 50% 40%, rgba(20,20,20,0.55) 0%, rgba(10,10,10,0.88) 100%);
+    pointer-events: none;
+  }
+
+  .auth-card {
+    position: relative; z-index: 1;
+    background: rgba(0,0,0,0.55);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 2.5rem 2rem;
+    width: 100%; max-width: 360px;
+    text-align: center;
+  }
+  .auth-icon { font-size: 42px; display: block; margin-bottom: 12px; filter: drop-shadow(0 2px 12px rgba(0,0,0,0.9)); }
+  .auth-card h2 { font-family: 'Georgia', serif; font-size: 20px; font-weight: normal; color: #f0ede8; margin-bottom: 5px; }
+  .auth-card p { font-size: 12px; color: #555; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.5rem; }
+
+  .auth-card input {
+    width: 100%; background: rgba(255,255,255,0.06);
+    border: 0.5px solid rgba(255,255,255,0.12);
+    border-radius: 8px; padding: 11px 14px;
+    font-size: 15px; color: #f0ede8;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    outline: none; text-align: center; letter-spacing: 0.1em;
+    margin-bottom: 10px;
+    transition: border-color 0.15s;
+  }
+  .auth-card input:focus { border-color: rgba(255,255,255,0.3); }
+  .auth-card input::placeholder { color: #3a3a3a; letter-spacing: 0; }
+
+  .auth-btn {
+    width: 100%; padding: 12px; font-size: 14px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: 0.04em; cursor: pointer; border-radius: 8px;
+    border: 0.5px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08); color: #f0ede8;
+    transition: background 0.15s;
+  }
+  .auth-btn:hover { background: rgba(255,255,255,0.13); }
+
+  .pwd-err {
+    display: none; font-size: 12px; color: #c07070;
+    margin-top: 10px;
+  }
+
+  /* ── Main content ────────────────────────────────────────────────────────── */
+  #main-content { display: none; }
+
+  .header { text-align: center; padding: 2.5rem 0 2rem; border-bottom: 0.5px solid rgba(255,255,255,0.1); margin-bottom: 2rem; }
+  .chess-symbol { font-size: 48px; display: block; margin-bottom: 12px; filter: drop-shadow(0 2px 12px rgba(0,0,0,0.9)); }
+  .header h1 { font-family: 'Georgia', serif; font-size: 23px; font-weight: normal; color: #f0ede8; letter-spacing: 0.05em; margin-bottom: 5px; }
+  .header .sub { font-size: 11px; color: #666; letter-spacing: 0.12em; text-transform: uppercase; }
 
   .stats { display: flex; gap: 12px; margin-bottom: 2rem; }
-  .stat-card { flex: 1; background: rgba(201,168,76,0.05); border: 0.5px solid rgba(201,168,76,0.18); border-radius: 12px; padding: 1.1rem; text-align: center; }
-  .stat-num { font-family: 'Georgia', serif; font-size: 30px; color: #c9a84c; text-shadow: 0 0 20px rgba(201,168,76,0.3); }
-  .stat-label { font-size: 10px; color: #4a4236; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+  .stat-card { flex: 1; background: rgba(0,0,0,0.5); border: 0.5px solid rgba(255,255,255,0.09); border-radius: 12px; padding: 1.1rem; text-align: center; }
+  .stat-num { font-family: 'Georgia', serif; font-size: 30px; color: #f0ede8; }
+  .stat-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
 
   .refresh-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; }
-  .last-updated { font-size: 11px; color: #332e28; }
-  .refresh-btn { font-size: 11px; padding: 6px 14px; border-radius: 6px; border: 0.5px solid rgba(201,168,76,0.2); background: transparent; color: #6a5f44; cursor: pointer; transition: color 0.15s, border-color 0.15s, background 0.15s; }
-  .refresh-btn:hover { color: #c9a84c; border-color: rgba(201,168,76,0.5); background: rgba(201,168,76,0.06); }
+  .last-updated { font-size: 11px; color: #444; }
+  .refresh-btn { font-size: 11px; padding: 6px 14px; border-radius: 6px; border: 0.5px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.4); color: #888; cursor: pointer; transition: color 0.15s, border-color 0.15s; }
+  .refresh-btn:hover { color: #f0ede8; border-color: rgba(255,255,255,0.3); }
 
   .section { margin-bottom: 1.75rem; }
   .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-  .section-title { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #c9a84c; white-space: nowrap; }
-  .section-line { flex: 1; height: 0.5px; background: rgba(201,168,76,0.12); }
+  .section-title { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #ccc; white-space: nowrap; display: flex; align-items: center; gap: 7px; }
+  .section-title::before { content: ''; width: 3px; height: 3px; border-radius: 50%; background: #fff; flex-shrink: 0; }
+  .section-line { flex: 1; height: 0.5px; background: rgba(255,255,255,0.08); }
 
-  .candidate-row { position: relative; overflow: hidden; border: 0.5px solid rgba(255,255,255,0.04); border-radius: 9px; padding: 12px 15px; margin-bottom: 8px; background: rgba(255,255,255,0.02); }
+  .candidate-row { position: relative; overflow: hidden; border: 0.5px solid rgba(255,255,255,0.06); border-radius: 9px; padding: 12px 15px; margin-bottom: 8px; background: rgba(0,0,0,0.45); }
   .candidate-row:last-child { margin-bottom: 0; }
-  .candidate-row.leader { border-color: rgba(201,168,76,0.28); background: rgba(201,168,76,0.05); box-shadow: inset 0 0 30px rgba(201,168,76,0.04), 0 0 20px rgba(201,168,76,0.06); }
-  .bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(201,168,76,0.07); border-radius: 9px; transition: width 1s cubic-bezier(0.4,0,0.2,1); pointer-events: none; }
-  .candidate-row.leader .bar-fill { background: rgba(201,168,76,0.11); }
+  .candidate-row.leader { border-color: rgba(255,255,255,0.22); background: rgba(255,255,255,0.06); }
+  .bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(255,255,255,0.04); border-radius: 9px; transition: width 1s cubic-bezier(0.4,0,0.2,1); pointer-events: none; }
+  .candidate-row.leader .bar-fill { background: rgba(255,255,255,0.07); }
   .row-content { position: relative; display: flex; align-items: center; gap: 12px; }
-  .rank-badge { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
-  .rank-1 { background: rgba(201,168,76,0.2); color: #c9a84c; box-shadow: 0 0 10px rgba(201,168,76,0.2); }
-  .rank-2 { background: rgba(143,160,176,0.12); color: #8fa0b0; }
-  .rank-3 { background: rgba(160,120,90,0.12); color: #a0785a; }
-  .rank-other { background: rgba(255,255,255,0.03); color: #333; }
-  .cname { flex: 1; font-size: 14px; color: #b0a898; }
-  .candidate-row.leader .cname { color: #e8d898; }
-  .vote-count { font-family: 'Georgia', serif; font-size: 19px; color: #5a5040; }
-  .candidate-row.leader .vote-count { color: #c9a84c; text-shadow: 0 0 12px rgba(201,168,76,0.3); }
-  .pct { font-size: 11px; color: #2e2922; min-width: 36px; text-align: right; }
-  .candidate-row.leader .pct { color: rgba(201,168,76,0.45); }
 
-  .loading { text-align: center; padding: 3rem; color: #4a4236; font-size: 14px; }
-  .footer { text-align: center; padding-top: 2.5rem; font-size: 10px; color: #222018; letter-spacing: 0.1em; text-transform: uppercase; }
+  .rank-badge { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .rank-1 { background: rgba(255,255,255,0.15); color: #f0ede8; }
+  .rank-2 { background: rgba(255,255,255,0.08); color: #aaa; }
+  .rank-3 { background: rgba(255,255,255,0.05); color: #777; }
+  .rank-other { background: rgba(255,255,255,0.02); color: #444; }
+
+  .cname { flex: 1; font-size: 14px; color: #888; }
+  .candidate-row.leader .cname { color: #f0ede8; }
+  .vote-count { font-family: 'Georgia', serif; font-size: 19px; color: #555; }
+  .candidate-row.leader .vote-count { color: #f0ede8; }
+  .pct { font-size: 11px; color: #333; min-width: 36px; text-align: right; }
+  .candidate-row.leader .pct { color: #888; }
+
+  .loading { text-align: center; padding: 3rem; color: #444; font-size: 14px; }
+  .footer { text-align: center; padding-top: 2.5rem; font-size: 10px; color: #2a2a2a; letter-spacing: 0.1em; text-transform: uppercase; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="header">
-    <span class="chess-symbol">♟</span>
-    <h1>AUPP Chess Club</h1>
-    <p class="sub">Officer Election · AY 2025–26 · Live Results</p>
-  </div>
 
-  <div class="stats">
-    <div class="stat-card"><div class="stat-num" id="total-votes">—</div><div class="stat-label">Votes cast</div></div>
-    <div class="stat-card"><div class="stat-num">13</div><div class="stat-label">Candidates</div></div>
-    <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">Positions</div></div>
+<!-- Auth Screen -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <span class="auth-icon">♟</span>
+    <h2>AUPP Chess Club</h2>
+    <p>Results · Authorised access only</p>
+    <input type="password" id="pwd-input" placeholder="Enter password">
+    <button class="auth-btn" onclick="submitPassword()">View Results →</button>
+    <p class="pwd-err" id="pwd-err">Incorrect password. Try again.</p>
   </div>
+</div>
 
-  <div class="refresh-row">
-    <span class="last-updated" id="last-updated">Connecting…</span>
-    <button class="refresh-btn" onclick="load()">↻ Refresh</button>
+<!-- Main Content -->
+<div id="main-content">
+  <div class="wrap">
+    <div class="header">
+      <span class="chess-symbol">♟</span>
+      <h1>AUPP Chess Club</h1>
+      <p class="sub">Officer Election · AY 2025–26 · Live Results</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card"><div class="stat-num" id="total-votes">—</div><div class="stat-label">Votes cast</div></div>
+      <div class="stat-card"><div class="stat-num">13</div><div class="stat-label">Candidates</div></div>
+      <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">Positions</div></div>
+    </div>
+
+    <div class="refresh-row">
+      <span class="last-updated" id="last-updated">Connecting…</span>
+      <button class="refresh-btn" onclick="load()">↻ Refresh</button>
+    </div>
+
+    <div id="results"><div class="loading">Loading results…</div></div>
+    <div class="footer">AUPP Chess Club — internal use only</div>
   </div>
-
-  <div id="results"><div class="loading">Loading results…</div></div>
-  <div class="footer">AUPP Chess Club &mdash; internal use only</div>
 </div>
 
 <script>
   const SCRIPT_URL = "YOUR_APPS_SCRIPT_URL_HERE";
+  const PASSWORD   = "Chess@0521";
+  const AUTH_KEY   = "aupp_chess_results_auth";
 
   const POSITIONS = {
-    president: { label: "♛  President",      candidates: ["Mohasal Lykunthy","Ritheasak","Kimsang","Sokundara","Lim Sunhout"] },
-    vp:        { label: "♜  Vice President", candidates: ["Pha Lina","Sokundara","Venghong","Ritheasak","Koun Chealinritheasak"] },
-    officer:   { label: "♞  Club Officer",   candidates: ["Lim Sunhout","Kimsang","Lo Sovannara"] }
+    president: { label: "President",      candidates: ["Mohasal Lykunthy","Ritheasak","Kimsang","Sokundara","Lim Sunhout"] },
+    vp:        { label: "Vice President", candidates: ["Pha Lina","Sokundara","Venghong","Ritheasak","Koun Chealinritheasak"] },
+    officer:   { label: "Club Officer",   candidates: ["Lim Sunhout","Kimsang","Lo Sovannara"] }
   };
 
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  function checkAuth() {
+    if (sessionStorage.getItem(AUTH_KEY) === "1") {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+      load();
+      setInterval(load, 30000);
+    } else {
+      document.getElementById('auth-screen').style.display = 'flex';
+      document.getElementById('main-content').style.display = 'none';
+    }
+  }
+
+  function submitPassword() {
+    const input = document.getElementById('pwd-input').value;
+    if (input === PASSWORD) {
+      sessionStorage.setItem(AUTH_KEY, "1");
+      checkAuth();
+    } else {
+      document.getElementById('pwd-err').style.display = 'block';
+      document.getElementById('pwd-input').value = '';
+      document.getElementById('pwd-input').focus();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('pwd-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') submitPassword();
+    });
+    checkAuth();
+  });
+
+  // ── Results ───────────────────────────────────────────────────────────────
   function rankClass(i) { return ['rank-1','rank-2','rank-3'][i] || 'rank-other'; }
 
   function renderPosition(posKey, counts) {
@@ -154,9 +267,6 @@
       document.getElementById('last-updated').textContent = 'Connection failed';
     }
   }
-
-  load();
-  setInterval(load, 30000);
 </script>
 </body>
 </html>
