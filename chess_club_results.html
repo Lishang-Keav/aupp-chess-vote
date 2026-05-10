@@ -139,6 +139,13 @@
   .candidate-row.leader .pct { color: #888; }
 
   .loading { text-align: center; padding: 3rem; color: #444; font-size: 14px; }
+
+  .comments-section { margin-bottom: 1.75rem; }
+  .comment-card { background: rgba(0,0,0,0.45); border: 0.5px solid rgba(255,255,255,0.06); border-radius: 9px; padding: 12px 15px; margin-bottom: 8px; }
+  .comment-card:last-child { margin-bottom: 0; }
+  .comment-name { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+  .comment-text { font-size: 14px; color: #c8c0b0; line-height: 1.5; }
+  .no-comments { font-size: 13px; color: #444; text-align: center; padding: 1rem; }
   .footer { text-align: center; padding-top: 2.5rem; font-size: 10px; color: #2a2a2a; letter-spacing: 0.1em; text-transform: uppercase; }
 </style>
 </head>
@@ -188,7 +195,7 @@
 
   const POSITIONS = {
     president: { label: "President",      candidates: ["Mohasal Lykunthy","Ritheasak","Kimsang","Sokundara","Lim Sunhout"] },
-    vp:        { label: "Vice President", candidates: ["Pha Lina","Sokundara","Venghong","Ritheasak"] },
+    vp:        { label: "Vice President", candidates: ["Pha Lina","Sokundara","Venghong","Ritheasak","Koun Chealinritheasak"] },
     officer:   { label: "Club Officer",   candidates: ["Lim Sunhout","Kimsang","Lo Sovannara"] }
   };
 
@@ -255,7 +262,20 @@
   function render(data) {
     document.getElementById('total-votes').textContent = data.totalVotes;
     document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-    document.getElementById('results').innerHTML = Object.keys(POSITIONS).map(k => renderPosition(k, data[k]||{})).join('');
+    const posHTML = Object.keys(POSITIONS).map(k => renderPosition(k, data[k]||{})).join('');
+    const comments = data.comments || [];
+    const commentsHTML = `
+      <div class="comments-section">
+        <div class="section-header"><span class="section-title">Comments</span><div class="section-line"></div></div>
+        ${comments.length === 0
+          ? '<div class="no-comments">No comments yet.</div>'
+          : comments.map(c => `
+            <div class="comment-card">
+              <div class="comment-name">${c.name}</div>
+              <div class="comment-text">${c.comment}</div>
+            </div>`).join('')}
+      </div>`;
+    document.getElementById('results').innerHTML = posHTML + commentsHTML;
   }
 
   async function load() {
