@@ -218,8 +218,16 @@
 
   // Check deadline on load
   async function init() {
+    // Check localStorage first — always works
+    if (localStorage.getItem(LS_KEY)) {
+      document.getElementById('voted-banner').style.display = 'block';
+      document.getElementById('form-view').style.display = 'none';
+    }
+
+    // Try to get deadline — fail silently so form still works
     try {
-      const res = await fetch(SCRIPT_URL, { cache: 'no-store' });
+      const res = await fetch(SCRIPT_URL + '?t=' + Date.now());
+      if (!res.ok) return;
       const data = await res.json();
       if (data.deadline) {
         const dl = new Date(data.deadline);
@@ -234,12 +242,8 @@
           timeZone: 'Asia/Phnom_Penh', dateStyle: 'medium', timeStyle: 'short'
         });
       }
-    } catch {}
-
-    // Check localStorage
-    if (localStorage.getItem(LS_KEY)) {
-      document.getElementById('voted-banner').style.display = 'block';
-      document.getElementById('form-view').style.display = 'none';
+    } catch {
+      // Deadline check failed silently — form still works normally
     }
   }
 
@@ -291,16 +295,6 @@
     status.textContent = 'Checking…';
 
     try {
-      const checkRes = await fetch(`${SCRIPT_URL}?check=${encodeURIComponent(stid)}`);
-      const checkData = await checkRes.json();
-      if (checkData.voted) {
-        err.textContent = 'This student ID has already submitted a ballot.';
-        err.style.display = 'block';
-        btn.disabled = false;
-        status.textContent = '';
-        return;
-      }
-
       status.textContent = 'Submitting…';
       const confirmationCode = genCode();
 
