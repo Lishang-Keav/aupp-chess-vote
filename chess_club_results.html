@@ -317,21 +317,21 @@
 
   const ADMIN_KEY = "Chess@0521";
 
-  async function setDeadline() {
+  function setDeadline() {
     const dl = document.getElementById('deadline-input').value;
     if (!dl) { document.getElementById('admin-msg').textContent = 'Pick a date first.'; return; }
-    try {
-      await fetch(`${SCRIPT_URL}?action=setDeadline&deadline=${encodeURIComponent(dl)}&adminKey=${ADMIN_KEY}`);
-      document.getElementById('admin-msg').textContent = '✓ Deadline set. Auto-clear scheduled 1 week after.';
-      load();
-    } catch { document.getElementById('admin-msg').textContent = 'Failed to set deadline.'; }
+    const url = `${SCRIPT_URL}?action=setDeadline&deadline=${encodeURIComponent(dl)}&adminKey=${ADMIN_KEY}`;
+    window.open(url, '_blank');
+    document.getElementById('admin-msg').textContent = '✓ A tab opened to confirm — close it and refresh results.';
+    setTimeout(load, 3000);
   }
 
   function confirmClear() {
     if (!confirm('Clear ALL votes permanently? This cannot be undone.')) return;
-    fetch(`${SCRIPT_URL}?action=clearVotes&adminKey=${ADMIN_KEY}`)
-      .then(() => { document.getElementById('admin-msg').textContent = '✓ All votes cleared.'; load(); })
-      .catch(() => { document.getElementById('admin-msg').textContent = 'Failed to clear votes.'; });
+    const url = `${SCRIPT_URL}?action=clearVotes&adminKey=${ADMIN_KEY}`;
+    window.open(url, '_blank');
+    document.getElementById('admin-msg').textContent = '✓ A tab opened to confirm — close it and refresh results.';
+    setTimeout(load, 3000);
   }
 
   async function load() {
