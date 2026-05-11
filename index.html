@@ -77,10 +77,11 @@
   .candidate:last-child { margin-bottom: 0; }
   .candidate:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.18); }
   .candidate.selected { background: rgba(255,255,255,0.11); border-color: rgba(255,255,255,0.38); }
-  .radio { width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #3a3a3a; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: border-color 0.12s; }
-  .candidate.selected .radio { border-color: #fff; background: #fff; }
+  .radio { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #3a3a3a; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .candidate.selected .radio { border-color: transparent; background: transparent; font-size: 18px; }
   .radio::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #1c1c1c; display: none; }
-  .candidate.selected .radio::after { display: block; }
+  .candidate.selected .radio::after { display: none; }
+  .candidate.selected .radio::before { content: '♟'; color: #f0ede8; line-height: 1; }
   .cname { font-size: 14px; color: #999; }
   .candidate.selected .cname { color: #f0ede8; }
 
