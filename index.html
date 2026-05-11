@@ -112,10 +112,31 @@
   .vote-summary .pick { color: #f0ede8; }
 
   .footer { text-align: center; padding-top: 2.5rem; font-size: 10px; color: #2a2a2a; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* Deadline */
+  .deadline-bar { text-align: center; background: rgba(0,0,0,0.4); border: 0.5px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 14px; margin-bottom: 1.5rem; font-size: 12px; color: #777; }
+  .deadline-bar span { color: #f0ede8; }
+  .closed-screen { display: none; text-align: center; padding: 4rem 1rem; }
+  .closed-icon { font-size: 48px; display: block; margin-bottom: 14px; }
+  .closed-screen h2 { font-family: Georgia, serif; font-size: 22px; font-weight: normal; color: #f0ede8; margin-bottom: 8px; }
+  .closed-screen p { font-size: 14px; color: #555; }
+
+  /* Confirmation code */
+  .code-box { margin-top: 1.5rem; background: rgba(0,0,0,0.45); border: 0.5px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 1.25rem; }
+  .code-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .code-value { font-family: Georgia, serif; font-size: 22px; color: #f0ede8; letter-spacing: 0.15em; }
+  .code-note { font-size: 11px; color: #444; margin-top: 6px; }
 </style>
 </head>
 <body>
 <div class="wrap">
+
+  <!-- Closed screen -->
+  <div class="closed-screen" id="closed-screen">
+    <span class="closed-icon">♟</span>
+    <h2>Voting has closed.</h2>
+    <p>The deadline for this election has passed.</p>
+  </div>
 
   <!-- Already voted state -->
   <div class="voted-banner" id="voted-banner">
@@ -131,6 +152,9 @@
       <p class="sub">Officer Election Ballot · AY 2025–26</p>
     </div>
 
+    <div class="deadline-bar" id="deadline-bar" style="display:none">
+      Voting closes on <span id="deadline-text"></span>
+    </div>
     <div class="field">
       <label for="vname">Full name</label>
       <input type="text" id="vname" placeholder="e.g. Lishang Keav" autocomplete="name">
@@ -170,6 +194,11 @@
     <h2>Vote recorded.</h2>
     <p>Thank you, <strong id="s-name" style="color:#f0ede8"></strong>. Your ballot has been saved.</p>
     <div class="vote-summary" id="s-summary"></div>
+    <div class="code-box" id="code-box" style="display:none">
+      <div class="code-label">Your confirmation code</div>
+      <div class="code-value" id="confirm-code"></div>
+      <div class="code-note">Save this code as proof of your vote.</div>
+    </div>
   </div>
 
   <div class="footer">AUPP Chess Club &mdash; internal use only</div>
@@ -178,9 +207,41 @@
 <script>
   // ── PASTE YOUR APPS SCRIPT WEB APP URL HERE ──────────────────────────────
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxA1E-98pTFeSMa7Q2JBaptuKarVSC-jxWkiLT_Q9zBXSsUmYB7wP-oC4WlXhvnq2OX/exec";
-  // ─────────────────────────────────────────────────────────────────────────
-
   const LS_KEY = "aupp_chess_voted";
+
+  function genCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = 'CHE-';
+    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    return code;
+  }
+
+  // Check deadline on load
+  async function init() {
+    try {
+      const res = await fetch(SCRIPT_URL, { cache: 'no-store' });
+      const data = await res.json();
+      if (data.deadline) {
+        const dl = new Date(data.deadline);
+        if (new Date() > dl) {
+          document.getElementById('closed-screen').style.display = 'block';
+          document.getElementById('form-view').style.display = 'none';
+          document.getElementById('voted-banner').style.display = 'none';
+          return;
+        }
+        document.getElementById('deadline-bar').style.display = 'block';
+        document.getElementById('deadline-text').textContent = dl.toLocaleString('en-US', {
+          timeZone: 'Asia/Phnom_Penh', dateStyle: 'medium', timeStyle: 'short'
+        });
+      }
+    } catch {}
+
+    // Check localStorage
+    if (localStorage.getItem(LS_KEY)) {
+      document.getElementById('voted-banner').style.display = 'block';
+      document.getElementById('form-view').style.display = 'none';
+    }
+  }
 
   const positions = {
     president: { el: 'president-opts', candidates: ['Mohasal Lykunthy','Ritheasak','Kimsang','Sokundara','Lim Sunhout'] },
@@ -188,12 +249,6 @@
     officer:   { el: 'officer-opts',   candidates: ['Lim Sunhout','Kimsang','Lo Sovannara'] }
   };
   const votes = { president: null, vp: null, officer: null };
-
-  // Check localStorage on load
-  if (localStorage.getItem(LS_KEY)) {
-    document.getElementById('voted-banner').style.display = 'block';
-    document.getElementById('form-view').style.display = 'none';
-  }
 
   function renderOptions(posKey) {
     const { el, candidates } = positions[posKey];
@@ -226,7 +281,6 @@
     }
     err.style.display = 'none';
 
-    // Device-level check
     if (localStorage.getItem(LS_KEY)) {
       document.getElementById('form-view').style.display = 'none';
       document.getElementById('voted-banner').style.display = 'block';
@@ -237,10 +291,8 @@
     status.textContent = 'Checking…';
 
     try {
-      // Server-side duplicate check
       const checkRes = await fetch(`${SCRIPT_URL}?check=${encodeURIComponent(stid)}`);
       const checkData = await checkRes.json();
-
       if (checkData.voted) {
         err.textContent = 'This student ID has already submitted a ballot.';
         err.style.display = 'block';
@@ -250,13 +302,13 @@
       }
 
       status.textContent = 'Submitting…';
+      const confirmationCode = genCode();
 
       await fetch(SCRIPT_URL, {
         method: 'POST', mode: 'no-cors',
-        body: JSON.stringify({ name, studentId: stid, president: votes.president, vp: votes.vp, officer: votes.officer, comments: comment })
+        body: JSON.stringify({ name, studentId: stid, president: votes.president, vp: votes.vp, officer: votes.officer, comments: comment, confirmationCode })
       });
 
-      // Mark as voted on this device
       localStorage.setItem(LS_KEY, stid);
 
       document.getElementById('s-name').textContent = name;
@@ -264,6 +316,8 @@
         <div><span class="pos">President</span><span class="pick">${votes.president}</span></div>
         <div><span class="pos">Vice President</span><span class="pick">${votes.vp}</span></div>
         <div><span class="pos">Club Officer</span><span class="pick">${votes.officer}</span></div>`;
+      document.getElementById('confirm-code').textContent = confirmationCode;
+      document.getElementById('code-box').style.display = 'block';
       document.getElementById('form-view').style.display = 'none';
       document.getElementById('success-view').style.display = 'block';
 
@@ -274,6 +328,7 @@
   }
 
   Object.keys(positions).forEach(renderOptions);
+  init();
 
   // Secret triple-click on chess piece → results page
   let clickCount = 0, clickTimer = null;
