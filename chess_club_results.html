@@ -140,6 +140,24 @@
 
   .loading { text-align: center; padding: 3rem; color: #444; font-size: 14px; }
 
+  /* Admin panel */
+  .admin-panel { background: rgba(0,0,0,0.45); border: 0.5px solid rgba(255,255,255,0.09); border-radius: 12px; padding: 1.25rem; margin-bottom: 2rem; }
+  .admin-title { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #ccc; margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
+  .admin-title::before { content: ''; width: 3px; height: 3px; border-radius: 50%; background: #fff; }
+  .admin-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .admin-row:last-child { margin-bottom: 0; }
+  .admin-row label { font-size: 11px; color: #555; min-width: 80px; }
+  .admin-row input { flex: 1; background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.12); border-radius: 7px; padding: 8px 12px; font-size: 13px; color: #f0ede8; font-family: Arial, sans-serif; outline: none; }
+  .admin-row input:focus { border-color: rgba(255,255,255,0.3); }
+  .admin-btn { padding: 8px 16px; font-size: 12px; font-family: Arial, sans-serif; cursor: pointer; border-radius: 7px; border: 0.5px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); color: #f0ede8; transition: background 0.15s; white-space: nowrap; }
+  .admin-btn:hover { background: rgba(255,255,255,0.13); }
+  .admin-btn.danger { border-color: rgba(180,60,60,0.4); color: #c07070; }
+  .admin-btn.danger:hover { background: rgba(180,60,60,0.1); }
+  .admin-msg { font-size: 12px; color: #555; margin-top: 8px; min-height: 18px; }
+  .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; }
+  .dot-open { background: #4caf82; }
+  .dot-closed { background: #c07070; }
+
   .comments-section { margin-bottom: 1.75rem; }
   .comment-card { background: rgba(0,0,0,0.45); border: 0.5px solid rgba(255,255,255,0.06); border-radius: 9px; padding: 12px 15px; margin-bottom: 8px; }
   .comment-card:last-child { margin-bottom: 0; }
@@ -183,7 +201,26 @@
       <button class="refresh-btn" onclick="load()">↻ Refresh</button>
     </div>
 
-    <div id="results"><div class="loading">Loading results…</div></div>
+    <!-- Admin panel -->
+  <div class="admin-panel">
+    <p class="admin-title">Admin Controls</p>
+    <div class="admin-row">
+      <label>Status</label>
+      <span id="vote-status" style="font-size:13px; color:#555;">Checking…</span>
+    </div>
+    <div class="admin-row">
+      <label>Deadline</label>
+      <input type="datetime-local" id="deadline-input">
+      <button class="admin-btn" onclick="setDeadline()">Set</button>
+    </div>
+    <div class="admin-row">
+      <label>Data</label>
+      <button class="admin-btn danger" onclick="confirmClear()">Clear all votes now</button>
+    </div>
+    <p class="admin-msg" id="admin-msg"></p>
+  </div>
+
+  <div id="results"><div class="loading">Loading results…</div></div>
     <div class="footer">AUPP Chess Club — internal use only</div>
   </div>
 </div>
@@ -195,7 +232,7 @@
 
   const POSITIONS = {
     president: { label: "President",      candidates: ["Mohasal Lykunthy","Ritheasak","Kimsang","Sokundara","Lim Sunhout"] },
-    vp:        { label: "Vice President", candidates: ["Pha Lina","Sokundara","Venghong","Ritheasak"] },
+    vp:        { label: "Vice President", candidates: ["Pha Lina","Sokundara","Venghong","Ritheasak","Koun Chealinritheasak"] },
     officer:   { label: "Club Officer",   candidates: ["Lim Sunhout","Kimsang","Lo Sovannara"] }
   };
 
@@ -276,6 +313,25 @@
             </div>`).join('')}
       </div>`;
     document.getElementById('results').innerHTML = posHTML + commentsHTML;
+  }
+
+  const ADMIN_KEY = "Chess@0521";
+
+  async function setDeadline() {
+    const dl = document.getElementById('deadline-input').value;
+    if (!dl) { document.getElementById('admin-msg').textContent = 'Pick a date first.'; return; }
+    try {
+      await fetch(`${SCRIPT_URL}?action=setDeadline&deadline=${encodeURIComponent(dl)}&adminKey=${ADMIN_KEY}`);
+      document.getElementById('admin-msg').textContent = '✓ Deadline set. Auto-clear scheduled 1 week after.';
+      load();
+    } catch { document.getElementById('admin-msg').textContent = 'Failed to set deadline.'; }
+  }
+
+  function confirmClear() {
+    if (!confirm('Clear ALL votes permanently? This cannot be undone.')) return;
+    fetch(`${SCRIPT_URL}?action=clearVotes&adminKey=${ADMIN_KEY}`)
+      .then(() => { document.getElementById('admin-msg').textContent = '✓ All votes cleared.'; load(); })
+      .catch(() => { document.getElementById('admin-msg').textContent = 'Failed to clear votes.'; });
   }
 
   async function load() {
