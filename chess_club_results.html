@@ -241,6 +241,7 @@
     </div>
     <div class="admin-row">
       <button class="admin-btn" onclick="saveConfig()">Save Election Setup</button>
+      <button class="admin-btn" onclick="clearSetupFields()" style="border-color:rgba(255,255,255,0.12);color:#666;">Clear Fields</button>
     </div>
     <p class="admin-msg" id="cfg-msg"></p>
   </div>
@@ -369,15 +370,7 @@
     window._currentResults = data;
     document.getElementById('total-votes').textContent = data.totalVotes;
 
-    // Pre-fill setup fields with current config
-    if (data.config) {
-      const cfg = data.config;
-      if (cfg.academicYear)         document.getElementById('cfg-year').value      = cfg.academicYear;
-      if (cfg.voteKey)              document.getElementById('cfg-votekey').value   = cfg.voteKey;
-      if (cfg.presidentCandidates)  document.getElementById('cfg-president').value = cfg.presidentCandidates.join(', ');
-      if (cfg.vpCandidates)         document.getElementById('cfg-vp').value        = cfg.vpCandidates.join(', ');
-      if (cfg.officerCandidates)    document.getElementById('cfg-officer').value   = cfg.officerCandidates.join(', ');
-    }
+
     document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
     const posHTML = Object.keys(POSITIONS).map(k => renderPosition(k, data[k]||{})).join('');
     const comments = data.comments || [];
@@ -396,6 +389,13 @@
   }
 
   const ADMIN_KEY = "Chess@0521";
+
+  function clearSetupFields() {
+    ['cfg-year','cfg-votekey','cfg-president','cfg-vp','cfg-officer'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('cfg-msg').textContent = 'Fields cleared — type your new values and hit Save.';
+  }
 
   function saveConfig() {
     const year      = document.getElementById('cfg-year').value.trim();
