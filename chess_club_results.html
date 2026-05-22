@@ -140,6 +140,14 @@
 
   .loading { text-align: center; padding: 3rem; color: #444; font-size: 14px; }
 
+  /* Election setup */
+  .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .setup-field label { display: block; font-size: 10px; color: #555; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 5px; }
+  .setup-field input { width: 100%; background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.12); border-radius: 7px; padding: 8px 12px; font-size: 13px; color: #f0ede8; font-family: Arial, sans-serif; outline: none; }
+  .setup-field input:focus { border-color: rgba(255,255,255,0.3); }
+  .setup-hint { font-size: 11px; color: #333; margin-bottom: 10px; }
+  .setup-full { grid-column: 1 / -1; }
+
   /* Admin panel */
   .admin-panel { background: rgba(0,0,0,0.45); border: 0.5px solid rgba(255,255,255,0.09); border-radius: 12px; padding: 1.25rem; margin-bottom: 2rem; }
   .admin-title { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #ccc; margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
@@ -154,6 +162,10 @@
   .admin-btn.danger { border-color: rgba(180,60,60,0.4); color: #c07070; }
   .admin-btn.danger:hover { background: rgba(180,60,60,0.1); }
   .admin-msg { font-size: 12px; color: #555; margin-top: 8px; min-height: 18px; }
+  .danger-zone { background: rgba(180,60,60,0.05); border: 0.5px solid rgba(180,60,60,0.25); border-radius: 12px; padding: 1.25rem; margin-bottom: 2rem; }
+  .danger-title { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #c07070; margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
+  .danger-title::before { content: ''; width: 3px; height: 3px; border-radius: 50%; background: #c07070; }
+  .danger-note { font-size: 11px; color: #6a3030; margin-bottom: 12px; }
   .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; }
   .dot-open { background: #4caf82; }
   .dot-closed { background: #c07070; }
@@ -201,7 +213,39 @@
       <button class="refresh-btn" onclick="load()">↻ Refresh</button>
     </div>
 
-    <!-- Admin panel -->
+    <!-- Election Setup panel -->
+  <div class="admin-panel" style="margin-bottom:1rem;">
+    <p class="admin-title">Election Setup</p>
+    <p class="setup-hint">Edit candidate names separated by commas. Changes apply to the ballot immediately after saving.</p>
+    <div class="setup-grid">
+      <div class="setup-field">
+        <label>Academic Year</label>
+        <input type="text" id="cfg-year" placeholder="AY 2026–27">
+      </div>
+      <div class="setup-field">
+        <label>Vote Key (bump number each election)</label>
+        <input type="text" id="cfg-votekey" placeholder="aupp_chess_voted_v3">
+      </div>
+      <div class="setup-field setup-full">
+        <label>President Candidates (comma separated)</label>
+        <input type="text" id="cfg-president" placeholder="Name1, Name2, Name3">
+      </div>
+      <div class="setup-field setup-full">
+        <label>Vice President Candidates (comma separated)</label>
+        <input type="text" id="cfg-vp" placeholder="Name1, Name2, Name3">
+      </div>
+      <div class="setup-field setup-full">
+        <label>Club Officer Candidates (comma separated)</label>
+        <input type="text" id="cfg-officer" placeholder="Name1, Name2, Name3">
+      </div>
+    </div>
+    <div class="admin-row">
+      <button class="admin-btn" onclick="saveConfig()">Save Election Setup</button>
+    </div>
+    <p class="admin-msg" id="cfg-msg"></p>
+  </div>
+
+  <!-- Admin panel -->
   <div class="admin-panel">
     <p class="admin-title">Admin Controls</p>
     <div class="admin-row">
@@ -213,11 +257,36 @@
       <input type="datetime-local" id="deadline-input">
       <button class="admin-btn" onclick="setDeadline()">Set</button>
     </div>
+
     <div class="admin-row">
-      <label>Data</label>
-      <button class="admin-btn danger" onclick="confirmClear()">Clear all votes now</button>
+      <label>Poster</label>
+      <button class="admin-btn" onclick="generatePoster()" id="poster-btn">♛ Generate Winners Poster</button>
     </div>
     <p class="admin-msg" id="admin-msg"></p>
+  </div>
+
+  <!-- Test Mode -->
+  <div class="admin-panel" style="margin-bottom:1rem;">
+    <p class="admin-title">Test Mode</p>
+    <div class="admin-row">
+      <label>Device lock</label>
+      <button class="admin-btn" onclick="resetDeviceLock()">Reset my device lock</button>
+    </div>
+    <div class="admin-row">
+      <label>Ballot</label>
+      <button class="admin-btn" onclick="openBallot()">Open ballot in new tab</button>
+    </div>
+    <p class="admin-msg" id="test-msg"></p>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="danger-zone">
+    <p class="danger-title">Danger Zone</p>
+    <p class="danger-note">This action permanently deletes all votes and cannot be undone.</p>
+    <div class="admin-row">
+      <button class="admin-btn danger" onclick="confirmClear()">Clear all votes now</button>
+    </div>
+    <p class="admin-msg" id="danger-msg"></p>
   </div>
 
   <div id="results"><div class="loading">Loading results…</div></div>
@@ -297,7 +366,18 @@
   }
 
   function render(data) {
+    window._currentResults = data;
     document.getElementById('total-votes').textContent = data.totalVotes;
+
+    // Pre-fill setup fields with current config
+    if (data.config) {
+      const cfg = data.config;
+      if (cfg.academicYear)         document.getElementById('cfg-year').value      = cfg.academicYear;
+      if (cfg.voteKey)              document.getElementById('cfg-votekey').value   = cfg.voteKey;
+      if (cfg.presidentCandidates)  document.getElementById('cfg-president').value = cfg.presidentCandidates.join(', ');
+      if (cfg.vpCandidates)         document.getElementById('cfg-vp').value        = cfg.vpCandidates.join(', ');
+      if (cfg.officerCandidates)    document.getElementById('cfg-officer').value   = cfg.officerCandidates.join(', ');
+    }
     document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
     const posHTML = Object.keys(POSITIONS).map(k => renderPosition(k, data[k]||{})).join('');
     const comments = data.comments || [];
@@ -317,6 +397,25 @@
 
   const ADMIN_KEY = "Chess@0521";
 
+  function saveConfig() {
+    const year      = document.getElementById('cfg-year').value.trim();
+    const voteKey   = document.getElementById('cfg-votekey').value.trim();
+    const president = document.getElementById('cfg-president').value.trim();
+    const vp        = document.getElementById('cfg-vp').value.trim();
+    const officer   = document.getElementById('cfg-officer').value.trim();
+    if (!year && !president && !vp && !officer) {
+      document.getElementById('cfg-msg').textContent = 'Fill in at least one field to save.'; return;
+    }
+    const params = new URLSearchParams({ action: 'setConfig', adminKey: ADMIN_KEY });
+    if (year)      params.set('academicYear', year);
+    if (voteKey)   params.set('voteKey', voteKey);
+    if (president) params.set('presidentCandidates', president);
+    if (vp)        params.set('vpCandidates', vp);
+    if (officer)   params.set('officerCandidates', officer);
+    window.open(`${SCRIPT_URL}?${params.toString()}`, '_blank');
+    document.getElementById('cfg-msg').textContent = '✓ A tab opened to confirm — close it and the ballot will use the new names.';
+  }
+
   function setDeadline() {
     const dl = document.getElementById('deadline-input').value;
     if (!dl) { document.getElementById('admin-msg').textContent = 'Pick a date first.'; return; }
@@ -332,6 +431,132 @@
     window.open(url, '_blank');
     document.getElementById('admin-msg').textContent = '✓ A tab opened to confirm — close it and refresh results.';
     setTimeout(load, 3000);
+  }
+
+  function resetDeviceLock() {
+    // Clear all known vote keys
+    ['aupp_chess_voted','aupp_chess_voted_v2','aupp_chess_voted_v3','aupp_chess_voted_v4'].forEach(k => localStorage.removeItem(k));
+    // Also clear with current config key if available
+    if (window._currentResults?.config?.voteKey) localStorage.removeItem(window._currentResults.config.voteKey);
+    document.getElementById('test-msg').textContent = '✓ Device lock cleared — you can submit a test vote now.';
+  }
+
+  function openBallot() {
+    window.open('index.html', '_blank');
+  }
+
+  function generatePoster() {
+    if (!window._currentResults) {
+      document.getElementById('admin-msg').textContent = 'Load results first then try again.';
+      return;
+    }
+    const data = window._currentResults;
+
+    // Get leader for each position
+    function getLeader(counts) {
+      return Object.entries(counts).sort((a,b) => b[1]-a[1])[0]?.[0] || 'TBD';
+    }
+    const president = getLeader(data.president || {});
+    const vp        = getLeader(data.vp        || {});
+    const officer   = getLeader(data.officer   || {});
+    const year      = data.config?.academicYear || 'AY 2025–26';
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUPP Chess Club — Elected Officers</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0a0a0a;padding:2rem 1rem;font-family:'DM Sans',sans-serif}
+.download-btn{margin-bottom:1.25rem;padding:10px 24px;font-family:'DM Sans',sans-serif;font-size:13px;letter-spacing:.06em;border-radius:8px;border:.5px solid rgba(201,168,76,.4);background:rgba(201,168,76,.1);color:#c9a84c;cursor:pointer;transition:background .15s}
+.download-btn:hover{background:rgba(201,168,76,.2)}
+.poster-border{padding:10px;background-color:#1a1a1a;background-image:linear-gradient(45deg,#222 25%,transparent 25%),linear-gradient(-45deg,#222 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#222 75%),linear-gradient(-45deg,transparent 75%,#222 75%);background-size:14px 14px;background-position:0 0,0 7px,7px -7px,-7px 0;border-radius:18px;border:1px solid rgba(201,168,76,.25);box-shadow:0 0 60px rgba(201,168,76,.08),0 0 120px rgba(0,0,0,.8)}
+.poster{width:640px;background-color:#111;background-image:linear-gradient(45deg,#191919 25%,transparent 25%),linear-gradient(-45deg,#191919 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#191919 75%),linear-gradient(-45deg,transparent 75%,#191919 75%);background-size:40px 40px;background-position:0 0,0 20px,20px -20px,-20px 0;border-radius:10px;padding:3.5rem 2.5rem;position:relative;overflow:hidden;text-align:center}
+.poster::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 85% 55% at 50% 0%,rgba(201,168,76,.15) 0%,rgba(8,8,8,.88) 65%);pointer-events:none;z-index:0}
+#particles{position:absolute;inset:0;z-index:0;pointer-events:none}
+.inner{position:relative;z-index:1}
+.top-label{font-size:11px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:#c9a84c;margin-bottom:14px;opacity:0;animation:fadeUp .6s .2s forwards}
+h1{font-family:'Playfair Display',Georgia,serif;font-size:40px;font-weight:700;color:#f5e6bb;letter-spacing:.02em;line-height:1.15;margin-bottom:8px;opacity:0;animation:fadeUp .7s .35s forwards}
+.year{font-size:13px;color:#4a4236;letter-spacing:.12em;margin-bottom:2rem;opacity:0;animation:fadeUp .7s .45s forwards}
+.divider{width:80px;height:.5px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.6),transparent);margin:0 auto 2rem;opacity:0;animation:fadeIn .8s .55s forwards}
+.congrats{font-family:'Playfair Display',Georgia,serif;font-size:15px;font-style:italic;color:#5a5040;margin-bottom:2.5rem;opacity:0;animation:fadeUp .7s .65s forwards}
+.winners-grid{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:14px;margin-bottom:2.5rem;align-items:end}
+.winner-card{background:rgba(0,0,0,.5);border:.5px solid rgba(201,168,76,.18);border-radius:12px;padding:1.5rem 1rem;position:relative;overflow:hidden;opacity:0;animation:slideUp .7s forwards}
+.winner-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.35),transparent)}
+.winner-card.first{border-color:rgba(201,168,76,.5);background:rgba(201,168,76,.05);padding-top:2rem;box-shadow:0 0 30px rgba(201,168,76,.06);animation:slideUp .8s .55s forwards,glowPulse 3s 1.5s ease-in-out infinite}
+.winner-card.first::before{background:linear-gradient(90deg,transparent,rgba(201,168,76,.85),transparent)}
+.winner-card:nth-child(1){animation-delay:.75s}
+.winner-card:nth-child(3){animation-delay:.95s}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 15px rgba(201,168,76,.1)}50%{box-shadow:0 0 35px rgba(201,168,76,.25),0 0 60px rgba(201,168,76,.08)}}
+.avatar-wrap{margin:0 auto 16px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.avatar-ring{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,rgba(201,168,76,.28),rgba(40,35,20,.7));border:1.5px solid rgba(201,168,76,.35);display:flex;align-items:center;justify-content:center;font-size:34px;color:#f5e6bb;box-shadow:0 0 0 3px rgba(201,168,76,.07),0 4px 20px rgba(0,0,0,.6)}
+.winner-card.first .avatar-ring{width:96px;height:96px;font-size:44px;border-color:rgba(201,168,76,.65);box-shadow:0 0 0 4px rgba(201,168,76,.1),0 0 25px rgba(201,168,76,.15),0 4px 20px rgba(0,0,0,.6)}
+.avatar-label{font-size:9px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:rgba(201,168,76,.5)}
+.position-label{font-size:9px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#5a5040;margin-bottom:8px}
+.winner-name{font-family:'Playfair Display',Georgia,serif;font-size:16px;font-weight:600;color:#e8e0d0;line-height:1.3}
+.winner-card.first .winner-name{font-size:21px;color:#f5e6bb}
+.footer-section{opacity:0;animation:fadeUp .7s 1.2s forwards}
+.aupp-label{font-size:11px;color:#3a3228;letter-spacing:.16em;text-transform:uppercase;margin-bottom:6px}
+.poster-footer{font-size:10px;color:#222018;letter-spacing:.12em;text-transform:uppercase}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<button class="download-btn" onclick="downloadPoster()">⬇ Download Poster</button>
+<div class="poster-border">
+<div class="poster" id="poster">
+<canvas id="particles"></canvas>
+<div class="inner">
+<p class="top-label">♟ &nbsp; AUPP Chess Club &nbsp; ♟</p>
+<h1>Elected Officers</h1>
+<p class="year">${year}</p>
+<div class="divider"></div>
+<p class="congrats">Congratulations to our newly elected officers</p>
+<div class="winners-grid">
+<div class="winner-card">
+<div class="avatar-wrap"><div class="avatar-ring">♜</div><span class="avatar-label">Vice President</span></div>
+<p class="position-label">Vice President</p>
+<p class="winner-name">${vp}</p>
+</div>
+<div class="winner-card first">
+<div class="avatar-wrap"><div class="avatar-ring">♛</div><span class="avatar-label">President</span></div>
+<p class="position-label">President</p>
+<p class="winner-name">${president}</p>
+</div>
+<div class="winner-card">
+<div class="avatar-wrap"><div class="avatar-ring">♞</div><span class="avatar-label">Club Officer</span></div>
+<p class="position-label">Club Officer</p>
+<p class="winner-name">${officer}</p>
+</div>
+</div>
+<div class="divider"></div>
+<div class="footer-section">
+<p class="aupp-label">American University of Phnom Penh</p>
+<p class="poster-footer">Elected by club members</p>
+</div>
+</div>
+</div>
+</div>
+<script>
+const canvas=document.getElementById('particles');const ctx=canvas.getContext('2d');
+function resize(){const p=document.querySelector('.poster');canvas.width=p.offsetWidth;canvas.height=p.offsetHeight;}resize();
+const pts=Array.from({length:55},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.8+.4,speed:Math.random()*.4+.15,drift:(Math.random()-.5)*.3,alpha:Math.random()*.5+.1,flicker:Math.random()*Math.PI*2}));
+function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);pts.forEach(p=>{p.flicker+=.025;const a=p.alpha*(.6+.4*Math.sin(p.flicker));ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=\`rgba(201,168,76,\${a})\`;ctx.fill();p.y-=p.speed;p.x+=p.drift;if(p.y<-5){p.y=canvas.height+5;p.x=Math.random()*canvas.width;}});window._rafId=requestAnimationFrame(draw);}draw();
+async function downloadPoster(){const btn=document.querySelector('.download-btn');btn.textContent='Generating…';btn.disabled=true;btn.style.display='none';cancelAnimationFrame(window._rafId);document.querySelectorAll('.winner-card,.top-label,h1,.year,.congrats,.footer-section,.divider').forEach(e=>{e.style.animation='none';e.style.opacity='1';e.style.transform='none';});await document.fonts.ready;await new Promise(r=>setTimeout(r,300));try{const c=await html2canvas(document.querySelector('.poster-border'),{backgroundColor:'#111',scale:2,useCORS:true,allowTaint:true,logging:false,onclone:(doc)=>{doc.querySelectorAll('*').forEach(e=>{e.style.animation='none';e.style.opacity='1';e.style.transform='none';});const cv=doc.getElementById('particles');if(cv)cv.style.display='none';}});const l=document.createElement('a');l.download='chess_club_winners.png';l.href=c.toDataURL('image/png');l.click();}catch(e){alert('Download failed — try Windows + Shift + S instead.');}btn.style.display='';btn.textContent='⬇ Download Poster';btn.disabled=false;draw();}
+<\/script>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: 'text/html' });
+    const url  = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    document.getElementById('admin-msg').textContent = '✓ Poster opened in a new tab — use the Download button inside it!';
   }
 
   async function load() {
