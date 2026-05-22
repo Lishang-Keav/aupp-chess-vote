@@ -363,34 +363,23 @@
     }
   }
 
-  // Secret triple-click on chess piece → results page
-  function handleSecretClick() {
-    clickCount++;
-    if (clickTimer) clearTimeout(clickTimer);
-    clickTimer = setTimeout(() => { clickCount = 0; }, 600);
-    if (clickCount >= 3) { clickCount = 0; window.location.href = 'chess_club_results.html'; }
+
+  // Secret triple-click → results page
+  let _cc = 0, _ct = null;
+  function _sc() {
+    _cc++;
+    if (_ct) clearTimeout(_ct);
+    _ct = setTimeout(() => { _cc = 0; }, 600);
+    if (_cc >= 3) { _cc = 0; window.location.href = 'chess_club_results.html'; }
   }
   ['secret-btn','success-secret-btn','voted-secret-btn'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener('click', handleSecretClick);
+    if (el) el.addEventListener('click', _sc);
   });
 
   init();
 
-  // Secret triple-click on chess piece → results page
-  let clickCount = 0, clickTimer = null;
-  function handleSecretClick() {
-    clickCount++;
-    if (clickTimer) clearTimeout(clickTimer);
-    clickTimer = setTimeout(() => { clickCount = 0; }, 600);
-    if (clickCount >= 3) {
-      clickCount = 0;
-      window.location.href = CONFIG.resultsPage;
-    }
-  }
-  document.getElementById('secret-btn').addEventListener('click', handleSecretClick);
-  document.getElementById('success-secret-btn').addEventListener('click', handleSecretClick);
-  document.getElementById('voted-secret-btn').addEventListener('click', handleSecretClick);
+
 
 </script>
 </body>
