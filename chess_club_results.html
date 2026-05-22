@@ -243,6 +243,7 @@
     <div class="admin-row">
       <button class="admin-btn" onclick="saveConfig()">Save Election Setup</button>
       <button class="admin-btn" onclick="clearSetupFields()" style="border-color:rgba(255,255,255,0.12);color:#666;">Clear Fields</button>
+      <button class="admin-btn danger" onclick="resetCandidates()">Reset Candidates</button>
     </div>
     <p class="admin-msg" id="cfg-msg"></p>
   </div>
@@ -403,6 +404,14 @@
   }
 
   const ADMIN_KEY = "Chess@0521";
+
+  function resetCandidates() {
+    if (!confirm('This will clear all candidate names and the deadline. The ballot will show "Election not opened yet." Confirm?')) return;
+    const url = `${SCRIPT_URL}?action=clearCandidates&adminKey=${ADMIN_KEY}`;
+    window.open(url, '_blank');
+    document.getElementById('cfg-msg').textContent = '✓ Candidates and deadline cleared. Ballot is now closed.';
+    setTimeout(load, 3000);
+  }
 
   function clearSetupFields() {
     ['cfg-year','cfg-votekey','cfg-president','cfg-vp','cfg-officer'].forEach(id => {
