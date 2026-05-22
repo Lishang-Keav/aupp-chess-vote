@@ -76,6 +76,8 @@
   .candidate { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.06); margin-bottom: 8px; cursor: pointer; background: rgba(255,255,255,0.02); transition: background 0.12s, border-color 0.12s; user-select: none; }
   .candidate:last-child { margin-bottom: 0; }
   .candidate:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.18); }
+  .candidate.disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+  .candidate.disabled .cname::after { content: ' (selected elsewhere)'; font-size: 11px; color: #555; }
   .candidate.selected { background: rgba(255,255,255,0.11); border-color: rgba(255,255,255,0.38); }
   .radio { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #3a3a3a; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
   .candidate.selected .radio { border-color: transparent; background: transparent; font-size: 18px; }
@@ -140,7 +142,7 @@
 
   <!-- Already voted state -->
   <div class="voted-banner" id="voted-banner">
-    <span class="icon">♛</span>
+    <span class="icon" id="voted-secret-btn">♛</span>
     <h3>You've already voted.</h3>
     <p>Your ballot was previously submitted and recorded.</p>
   </div>
@@ -190,7 +192,7 @@
   </div>
 
   <div class="success" id="success-view">
-    <span class="success-icon">♛</span>
+    <span class="success-icon" id="success-secret-btn">♛</span>
     <h2>Vote recorded.</h2>
     <p>Thank you, <strong id="s-name" style="color:#f0ede8"></strong>. Your ballot has been saved.</p>
     <div class="vote-summary" id="s-summary"></div>
@@ -206,8 +208,24 @@
 
 <script>
   // ── PASTE YOUR APPS SCRIPT WEB APP URL HERE ──────────────────────────────
+  // ╔══════════════════════════════════════════════════════════════╗
+  // ║           AUPP CHESS CLUB — BALLOT CONFIGURATION            ║
+  // ║     Only update the script URL when redeploying each year    ║
+  // ╚══════════════════════════════════════════════════════════════╝
+
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxA1E-98pTFeSMa7Q2JBaptuKarVSC-jxWkiLT_Q9zBXSsUmYB7wP-oC4WlXhvnq2OX/exec";
-  const LS_KEY = "aupp_chess_voted";
+
+  // Everything else is managed from the admin panel — no code edits needed!
+
+  // ── Do not edit below this line ────────────────────────────────────────────
+  let LS_KEY = "aupp_chess_voted_v2";
+
+  const positions = {
+    president: { el: 'president-opts', candidates: [] },
+    vp:        { el: 'vp-opts',        candidates: [] },
+    officer:   { el: 'officer-opts',   candidates: [] }
+  };
+  const votes = { president: null, vp: null, officer: null };
 
   function genCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -216,19 +234,68 @@
     return code;
   }
 
-  // Check deadline on load
+  function updateDisabled() {
+    const selectedNames = new Set(Object.values(votes).filter(Boolean));
+    Object.entries(positions).forEach(([posKey, { el }]) => {
+      document.getElementById(el).querySelectorAll('.candidate').forEach(c => {
+        const name = c.querySelector('.cname').textContent.replace(' (selected elsewhere)', '').trim();
+        const isSelectedHere = votes[posKey] === name;
+        const isSelectedElsewhere = !isSelectedHere && selectedNames.has(name);
+        c.classList.toggle('disabled', isSelectedElsewhere);
+      });
+    });
+  }
+
+  function renderOptions(posKey) {
+    const { el, candidates } = positions[posKey];
+    const container = document.getElementById(el);
+    container.innerHTML = '';
+    candidates.forEach(name => {
+      const div = document.createElement('div');
+      div.className = 'candidate';
+      div.innerHTML = `<div class="radio"></div><span class="cname">${name}</span>`;
+      div.onclick = () => {
+        if (div.classList.contains('disabled')) return;
+        votes[posKey] = name;
+        container.querySelectorAll('.candidate').forEach(c =>
+          c.classList.toggle('selected', c.querySelector('.cname').textContent === name)
+        );
+        updateDisabled();
+      };
+      container.appendChild(div);
+    });
+  }
+
   async function init() {
-    // Check localStorage first — always works
+    // Check localStorage first
     if (localStorage.getItem(LS_KEY)) {
       document.getElementById('voted-banner').style.display = 'block';
       document.getElementById('form-view').style.display = 'none';
     }
 
-    // Try to get deadline — fail silently so form still works
+    // Fetch config + deadline from Apps Script
     try {
       const res = await fetch(SCRIPT_URL + '?t=' + Date.now());
-      if (!res.ok) return;
+      if (!res.ok) throw new Error();
       const data = await res.json();
+
+      // Apply config
+      if (data.config) {
+        const cfg = data.config;
+        LS_KEY = cfg.voteKey || LS_KEY;
+        if (cfg.academicYear) document.querySelector('.sub').textContent = 'Officer Election Ballot · ' + cfg.academicYear;
+        if (cfg.presidentCandidates) positions.president.candidates = cfg.presidentCandidates;
+        if (cfg.vpCandidates)        positions.vp.candidates        = cfg.vpCandidates;
+        if (cfg.officerCandidates)   positions.officer.candidates   = cfg.officerCandidates;
+      }
+
+      // Re-check LS_KEY with potentially updated key
+      if (localStorage.getItem(LS_KEY)) {
+        document.getElementById('voted-banner').style.display = 'block';
+        document.getElementById('form-view').style.display = 'none';
+      }
+
+      // Check deadline
       if (data.deadline) {
         const dl = new Date(data.deadline);
         if (new Date() > dl) {
@@ -243,32 +310,11 @@
         });
       }
     } catch {
-      // Deadline check failed silently — form still works normally
+      // Fall back to defaults already in positions
     }
-  }
 
-  const positions = {
-    president: { el: 'president-opts', candidates: ['Mohasal Lykunthy','Ritheasak','Kimsang','Sokundara','Lim Sunhout'] },
-    vp:        { el: 'vp-opts',        candidates: ['Pha Lina','Sokundara','Venghong','Ritheasak'] },
-    officer:   { el: 'officer-opts',   candidates: ['Lim Sunhout','Kimsang','Lo Sovannara'] }
-  };
-  const votes = { president: null, vp: null, officer: null };
-
-  function renderOptions(posKey) {
-    const { el, candidates } = positions[posKey];
-    const container = document.getElementById(el);
-    candidates.forEach(name => {
-      const div = document.createElement('div');
-      div.className = 'candidate';
-      div.innerHTML = `<div class="radio"></div><span class="cname">${name}</span>`;
-      div.onclick = () => {
-        votes[posKey] = name;
-        container.querySelectorAll('.candidate').forEach(c =>
-          c.classList.toggle('selected', c.querySelector('.cname').textContent === name)
-        );
-      };
-      container.appendChild(div);
-    });
+    // Render candidates (from fetched config or defaults)
+    Object.keys(positions).forEach(renderOptions);
   }
 
   async function submitVote() {
@@ -292,19 +338,16 @@
     }
 
     btn.disabled = true;
-    status.textContent = 'Checking…';
+    status.textContent = 'Submitting…';
+    const confirmationCode = genCode();
 
     try {
-      status.textContent = 'Submitting…';
-      const confirmationCode = genCode();
-
       await fetch(SCRIPT_URL, {
         method: 'POST', mode: 'no-cors',
         body: JSON.stringify({ name, studentId: stid, president: votes.president, vp: votes.vp, officer: votes.officer, comments: comment, confirmationCode })
       });
 
       localStorage.setItem(LS_KEY, stid);
-
       document.getElementById('s-name').textContent = name;
       document.getElementById('s-summary').innerHTML = `
         <div><span class="pos">President</span><span class="pick">${votes.president}</span></div>
@@ -314,27 +357,40 @@
       document.getElementById('code-box').style.display = 'block';
       document.getElementById('form-view').style.display = 'none';
       document.getElementById('success-view').style.display = 'block';
-
     } catch {
       status.textContent = 'Something went wrong — please try again.';
       btn.disabled = false;
     }
   }
 
-  Object.keys(positions).forEach(renderOptions);
+  // Secret triple-click on chess piece → results page
+  function handleSecretClick() {
+    clickCount++;
+    if (clickTimer) clearTimeout(clickTimer);
+    clickTimer = setTimeout(() => { clickCount = 0; }, 600);
+    if (clickCount >= 3) { clickCount = 0; window.location.href = 'chess_club_results.html'; }
+  }
+  ['secret-btn','success-secret-btn','voted-secret-btn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', handleSecretClick);
+  });
+
   init();
 
   // Secret triple-click on chess piece → results page
   let clickCount = 0, clickTimer = null;
-  document.getElementById('secret-btn').addEventListener('click', () => {
+  function handleSecretClick() {
     clickCount++;
     if (clickTimer) clearTimeout(clickTimer);
     clickTimer = setTimeout(() => { clickCount = 0; }, 600);
     if (clickCount >= 3) {
       clickCount = 0;
-      window.location.href = 'chess_club_results.html';
+      window.location.href = CONFIG.resultsPage;
     }
-  });
+  }
+  document.getElementById('secret-btn').addEventListener('click', handleSecretClick);
+  document.getElementById('success-secret-btn').addEventListener('click', handleSecretClick);
+  document.getElementById('voted-secret-btn').addEventListener('click', handleSecretClick);
 
 </script>
 </body>
