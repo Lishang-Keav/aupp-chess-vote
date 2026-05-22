@@ -302,9 +302,9 @@
   const AUTH_KEY   = "aupp_chess_results_auth";
 
   const POSITIONS = {
-    president: { label: "President",      candidates: ["Mohasal Lykunthy","Ritheasak","Kimsang","Sokundara","Lim Sunhout"] },
-    vp:        { label: "Vice President", candidates: ["Pha Lina","Sokundara","Venghong","Ritheasak","Koun Chealinritheasak"] },
-    officer:   { label: "Club Officer",   candidates: ["Lim Sunhout","Kimsang","Lo Sovannara"] }
+    president: { label: "President",      candidates: [] },
+    vp:        { label: "Vice President", candidates: [] },
+    officer:   { label: "Club Officer",   candidates: [] }
   };
 
   // ── Auth ──────────────────────────────────────────────────────────────────
@@ -375,6 +375,13 @@
 
   function render(data) {
     window._currentResults = data;
+
+    // Update POSITIONS from config
+    if (data.config) {
+      if (data.config.presidentCandidates) POSITIONS.president.candidates = data.config.presidentCandidates;
+      if (data.config.vpCandidates)        POSITIONS.vp.candidates        = data.config.vpCandidates;
+      if (data.config.officerCandidates)   POSITIONS.officer.candidates   = data.config.officerCandidates;
+    }
     document.getElementById('total-votes').textContent = data.totalVotes;
 
 
