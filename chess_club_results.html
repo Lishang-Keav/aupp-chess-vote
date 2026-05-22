@@ -176,6 +176,7 @@
   .comment-name { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
   .comment-text { font-size: 14px; color: #c8c0b0; line-height: 1.5; }
   .no-comments { font-size: 13px; color: #444; text-align: center; padding: 1rem; }
+  .no-candidates { font-size: 13px; color: #333; text-align: center; padding: 1.5rem; font-style: italic; }
   .footer { text-align: center; padding-top: 2.5rem; font-size: 10px; color: #2a2a2a; letter-spacing: 0.1em; text-transform: uppercase; }
 </style>
 </head>
@@ -343,6 +344,12 @@
 
   function renderPosition(posKey, counts) {
     const { label, candidates } = POSITIONS[posKey];
+    if (!candidates || candidates.length === 0) {
+      return `<div class="section">
+        <div class="section-header"><span class="section-title">${label}</span><div class="section-line"></div></div>
+        <p class="no-candidates">No candidates set yet — add names in Election Setup.</p>
+      </div>`;
+    }
     const entries = candidates.map(c => [c, counts[c]||0]).sort((a,b) => b[1]-a[1]);
     const total = entries.reduce((s,[,v]) => s+v, 0);
     const max = entries[0]?.[1] || 1;
