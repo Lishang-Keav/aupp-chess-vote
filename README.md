@@ -24,21 +24,21 @@ Instead of relying on third-party survey tools, this system provides a simple an
 
 ---
 
-# 🎯 Motivation
+# Why This Project Was Built
 
-During my time as an **AUPP Chess Club Officer (January 2026 – May 2026)**, I noticed that our elections relied on general-purpose online forms.
+While serving as an AUPP Chess Club Officer (January 2026 – May 2026), I worked closely with the Vice President to help organize club operations.
 
-I wanted to build something designed specifically for the club.
+One recurring challenge was managing officer nominations and elections. Existing tools such as Google Forms could collect responses, but they were not designed for the club's election workflow or long-term use.
 
-The objectives were to:
+I proposed developing a dedicated election platform that would:
 
-- Create a dedicated election platform
-- Improve election organization
-- Reduce manual work
-- Provide a better experience for club members
-- Build a system that future Chess Club committees could continue using
+- Organize candidate nominations
+- Conduct officer elections in one place
+- Record voting information in an organized manner
+- Generate election results more efficiently
+- Provide a reusable system for future Chess Club committees
 
-This project was developed to solve a real organizational problem rather than simply satisfy an academic assignment.
+The goal was not to build a complex system, but to create a practical solution for a real organizational need within the club.
 
 ---
 
