@@ -1,6 +1,6 @@
 <div align="center">
 
-# ♟️ AUPP Chess Club Election Management System
+# ♟️AUPP Chess Club Final Election System
 
 *A lightweight, serverless election platform built for the American University of Phnom Penh (AUPP) Chess Club.*
 
