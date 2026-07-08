@@ -177,18 +177,11 @@ This project also taught me that software engineering is not only about writing 
 
 ---
 
-# 📸 Screenshots
+## Demonstration
 
-Screenshots will be added soon.
+The platform is used during official AUPP Chess Club elections.
 
-Recommended screenshots:
-
-- Home Page
-- Voting Form
-- Candidate Selection
-- Election Results
-- Google Sheets Data Structure
-
+Because the most recent election cycle has concluded, screenshots of the live voting process are not currently included. Documentation and demonstration materials will be updated during future election periods.
 ---
 
 # 🔮 Future Improvements
