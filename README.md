@@ -152,11 +152,11 @@ Testing and refining these processes helped ensure the system worked reliably du
 
 # 🌍 Project Impact
 
-Unlike many classroom projects, this system was developed to solve a real need within a student organization.
+This project was created to address a real operational need within the AUPP Chess Club.
 
-The platform provides the AUPP Chess Club with a dedicated election system that can continue serving future club committees instead of relying on generic online forms.
+Rather than relying on general-purpose online forms, the system provides a dedicated platform for managing nominations and elections in a more structured and organized manner.
 
-The goal was to create software that delivers practical value beyond the classroom.
+The long-term vision is for future Chess Club committees to continue using and maintaining the platform as part of the club's election process.
 
 ---
 
