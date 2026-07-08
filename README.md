@@ -14,32 +14,30 @@
 
 ---
 
-# 📖 Overview
+## 📖 Overview
 
-The **AUPP Chess Club Election Management System** is a web-based voting platform developed for the American University of Phnom Penh (AUPP) Chess Club.
+The AUPP Chess Club Election Management System is a lightweight web application developed for the American University of Phnom Penh (AUPP) Chess Club.
 
-The project was created to replace generic online voting forms with a dedicated election platform designed specifically for student club elections.
+The platform supports the **final election stage**, allowing eligible club members to vote for President, Vice President, and Club Officers through a simple web interface.
 
-Instead of relying on third-party survey tools, this system provides a simple and organized workflow that allows eligible Chess Club members to submit their votes while making election management easier for club officers.
+Election records are processed using Google Apps Script and stored in Google Sheets, providing a serverless and easy-to-maintain solution for a student organization.
 
 ---
 
-# Why This Project Was Built
+# 🎯 Why This Project Was Built
 
-While serving as an AUPP Chess Club Officer (January 2026 – May 2026), I worked closely with the Vice President to help organize club operations.
+While serving as an AUPP Chess Club Officer (January 2026 – May 2026), I noticed that although candidate nominations could be collected using general-purpose online forms, the final election still lacked a dedicated voting platform.
 
-One recurring challenge was managing officer nominations and elections. Existing tools such as Google Forms could collect responses, but they were not designed for the club's election workflow or long-term use.
+To improve the election process, I developed this web-based election system specifically for the final voting stage.
 
-I proposed developing a dedicated election platform that would:
+The system allows eligible Chess Club members to:
 
-- Organize candidate nominations
-- Conduct officer elections in one place
-- Record voting information in an organized manner
-- Generate election results more efficiently
-- Provide a reusable system for future Chess Club committees
+- Enter their name, student ID, and AUPP email
+- Cast their vote for club officer positions
+- Record election data in an organized manner
+- Generate election results efficiently
 
-The goal was not to build a complex system, but to create a practical solution for a real organizational need within the club.
-
+The goal was to create a practical and reusable platform that could simplify future Chess Club elections.
 ---
 
 # ✨ Features
