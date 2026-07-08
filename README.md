@@ -1,55 +1,55 @@
-# ♟️ AUPP Chess Club Election System
+# ♟️ AUPP Chess Club Election Management System
 
-A web-based election platform developed for the **American University of Phnom Penh (AUPP) Chess Club** to provide a secure, organized, and transparent method for electing club officers.
+A lightweight, serverless web application developed for the **American University of Phnom Penh (AUPP) Chess Club** to conduct secure, transparent, and organized club elections.
 
 ---
 
 ## 📖 Overview
 
-The AUPP Chess Club Election System was designed to replace generic online forms with a dedicated election platform tailored specifically to the needs of the Chess Club.
+The AUPP Chess Club Election Management System was created to replace generic online forms with a dedicated election platform tailored specifically for the Chess Club.
 
-Instead of relying on third-party voting tools, this system provides a structured election process where members can vote for:
+The system allows eligible members to vote for:
 
 - President
 - Vice President
 - Club Officers
 
-The platform helps ensure elections remain organized, transparent, and easy to manage for future club committees.
+using a structured voting workflow while keeping election records organized in Google Sheets.
+
+Unlike traditional web applications, this project uses **Google Apps Script** and **Google Sheets** instead of a dedicated backend server or SQL database, making it simple to maintain for future club committees.
 
 ---
 
-# 🎯 Project Objectives
+# 🎯 Objectives
 
-The primary goals of this project were to:
+This project was designed to:
 
-- Provide a dedicated election platform for the Chess Club
-- Improve transparency during elections
-- Reduce manual administration
-- Prevent overlapping election positions
-- Maintain accurate voting records
-- Build a solution that future club committees can continue using
+- Replace generic online voting forms.
+- Provide a dedicated election system.
+- Improve election transparency.
+- Organize candidate management.
+- Record election participation.
+- Preserve election records.
+- Create a long-term solution for future Chess Club committees.
 
 ---
 
 # ✨ Features
 
-## Member Features
+## Member
 
-- Secure member login
-- Online voting
-- Easy-to-use interface
-- One vote per election
+- Secure voting interface
 - Position-based voting
-- Confirmation before submission
+- One submission per member
+- Simple and intuitive interface
 
-## Administrator Features
+## Administration
 
 - Candidate management
 - Election management
-- View voter participation
-- Generate election results
-- Track voting status
-- Manage election periods
+- Vote tracking
+- Participation records
+- Election result generation
 
 ---
 
@@ -59,146 +59,95 @@ The primary goals of this project were to:
 
 - HTML5
 - CSS3
-- JavaScript
+- Vanilla JavaScript
 
 ## Backend
 
-- PHP
+- Google Apps Script
 
 ## Data Storage
 
 - Google Sheets
 
-Google Sheets was intentionally selected because it:
+## Version Control
 
-- requires no dedicated database server
-- is easy for future club officers to manage
-- simplifies maintenance
-- provides an accessible way to review election data
-- is suitable for a student organization with a relatively small number of users
+- Git
+- GitHub
 
 ---
 
-# 📂 Project Structure
+# 🏗 System Architecture
 
 ```
-/
-│
-├── assets/
-├── css/
-├── images/
-├── js/
-├── php/
-├── pages/
-├── index.php
-└── README.md
+Member
+    │
+    ▼
+HTML Website
+    │
+    ▼
+Google Apps Script
+    │
+    ▼
+Google Sheets
 ```
 
-*(Adjust the structure above to match your repository.)*
+Google Apps Script acts as the backend service by receiving requests from the website, processing election data, and storing records inside Google Sheets.
 
 ---
 
-# 🔒 Security
+# 💡 Why Google Apps Script?
 
-The system includes measures to maintain election integrity.
+This project intentionally uses Google Apps Script rather than a traditional backend because it offers several advantages for a student organization.
 
-These include:
+- No server maintenance
+- No SQL database required
+- Easy deployment
+- Easy maintenance
+- Low operating cost
+- Future committee members can manage election data using Google Sheets without requiring database knowledge
 
-- User authentication
-- Session management
-- Vote validation
-- One submission per voter
-- Controlled election workflow
-
----
-
-# 💡 Design Decisions
-
-One of the key design decisions was choosing **Google Sheets** instead of a traditional SQL database.
-
-This decision was made because the intended users are student club officers rather than software engineers.
-
-Using Google Sheets allows future committees to:
-
-- review election data easily
-- maintain the system with minimal technical knowledge
-- avoid database administration
-- reduce hosting complexity
-
-The goal was to build software that is practical, maintainable, and sustainable.
+The goal was to build a solution that balances simplicity, reliability, and maintainability.
 
 ---
 
 # 🚀 Challenges
 
-The most challenging part of this project was implementing the vote processing system.
+The most challenging aspect of this project was designing the election logic.
 
 The system needed to correctly:
 
-- collect votes
-- separate elections by position
+- separate election positions
+- record votes
+- prevent duplicate submissions
 - calculate results
-- display winners
-- identify voting participation
-- ensure election integrity
+- display participation records
+- maintain election integrity
 
-Successfully implementing these features became one of the biggest milestones of the project.
-
----
-
-# 📈 Future Improvements
-
-Potential future enhancements include:
-
-- Email verification
-- QR Code login
-- Improved administrator dashboard
-- Election scheduling
-- Better reporting
-- Mobile optimization
-- Audit logs
-- Additional security improvements
+Developing this workflow required careful planning and testing.
 
 ---
 
 # 🌍 Project Impact
 
-Unlike many academic projects, this system was created to solve a real organizational problem.
+Unlike many academic projects, this system was built to solve a real organizational problem.
 
-Rather than using Google Forms for every election, the Chess Club now has a dedicated election platform designed specifically for its voting process.
-
-The long-term goal is for future Chess Club committees to continue using and maintaining this platform.
+It provides the AUPP Chess Club with a dedicated election platform that future club committees can continue using instead of relying on general-purpose online forms.
 
 ---
 
-# 📷 Screenshots
+# 📚 Lessons Learned
 
-*(Add screenshots here)*
+This project strengthened my understanding of:
 
-Suggested screenshots:
-
-- Login Page
-- Dashboard
-- Candidate Selection
-- Voting Page
-- Election Results
-- Admin Dashboard
-
----
-
-# 📚 What I Learned
-
-Developing this project strengthened my understanding of:
-
-- Full-stack web development
-- PHP
+- Frontend web development
 - JavaScript
+- Google Apps Script
 - Google Sheets integration
-- User authentication
-- Session management
+- API communication
+- Event-driven programming
 - Software architecture
-- Problem solving
-- Building software for real users
+- Real-world software development
+- Building software for actual users
 
 ---
 
@@ -210,46 +159,29 @@ Former AUPP Chess Club Officer
 **January 2026 – May 2026**
 
 Bachelor of Computer Science  
-Fort Hays State University (FHSU)
+Fort Hays State University
 
 Bachelor of Information Technology Management  
-American University of Phnom Penh (AUPP)
-
-GitHub:
-https://github.com/Lishang-Keav
+American University of Phnom Penh
 
 ---
 
 # 📌 Project Status
 
-**Status:** Active
+Active
 
-This project was developed for the AUPP Chess Club.
+This project is intended to serve future generations of the AUPP Chess Club.
 
-Administrative ownership is intended to be transferred to future Chess Club officers to ensure long-term maintenance and continuity.
-
-Until ownership is officially transferred, the original developer maintains the technical infrastructure.
+Administrative ownership will be transferred to future Chess Club officers when appropriate.
 
 ---
 
 # 📄 License
 
-This project was developed for educational and organizational purposes.
+Educational and organizational use only.
 
-Future Chess Club committees are encouraged to maintain and improve the platform while preserving appropriate attribution to the original developer.
-
----
-
-# ❤️ Acknowledgements
-
-Special thanks to:
-
-- American University of Phnom Penh
-- AUPP Chess Club
-- Faculty Advisors
-- Chess Club Committee Members
-- Everyone who participated in testing and feedback
+Future Chess Club committees are welcome to maintain and improve this project while preserving attribution to the original developer.
 
 ---
 
-> *"Designed to support fair, transparent, and efficient elections for the AUPP Chess Club—today and for future generations."*
+> *Designed to support fair, transparent, and efficient elections for the AUPP Chess Club—today and for future generations.*
